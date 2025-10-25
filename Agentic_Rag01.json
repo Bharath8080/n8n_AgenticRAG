@@ -1,0 +1,378 @@
+{
+  "name": "Agentic_Rag",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Upload RAG PDF",
+        "formDescription": "Upload RAG PDF",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "File",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6ea2c18c-e358-4362-92f7-0b5f298f764b",
+      "name": "On form submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        -336,
+        -112
+      ],
+      "webhookId": "cab3dda4-3b49-4f05-a2c1-915ae4c62017",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "id": "fbd81e33-70c2-4df7-954a-f76cc250d00f",
+      "name": "Default Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "position": [
+        176,
+        64
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "id": "640c9c71-2c3b-49df-8775-5a5ab2c98172",
+      "name": "Recursive Character Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "position": [
+        192,
+        336
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Insert Data to Pinecone",
+        "height": 680,
+        "width": 880
+      },
+      "id": "e1ceae55-b81f-41bf-8b3e-a4c3c770f67c",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -400,
+        -192
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI assistant and you are provided with tools..go through them ..use there correct tool based on user query {{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are an AI assistant. Follow these rules strictly:  \n\n1. Check the user query against the \"VectorDB\" knowledge base first.  \n   - If relevant data exists, answer using only that data.  \n   - Do not make assumptions or provide extra information.  \n\n2. If the data is not in \"VectorDB\", perform a live web search using the MCP tool and answer the query based on the most relevant and up-to-date results.  \n\n3. Ensure the answer is clear, concise, and factual.  \n"
+        }
+      },
+      "id": "668f2928-0ecb-4fa8-b17f-5004c714f7dc",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        848,
+        -144
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "7b70264f-0cd4-4126-903e-3bd38fb620c5",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        592,
+        -80
+      ],
+      "webhookId": "c1f8d15b-e096-47f8-922e-a7484ebbc25c",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "content": "## Chat AI Agent",
+        "height": 680,
+        "width": 860,
+        "color": 5
+      },
+      "id": "237c96f9-e3a0-49f2-89a4-d30d505f037f",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        544,
+        -192
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Embedding Model",
+        "height": 300,
+        "color": 4
+      },
+      "id": "bd9ba9af-ce78-4df4-bff4-1ab3dae93fee",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -208,
+        176
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        288
+      ],
+      "id": "b8ac2169-1ab5-44d9-a5b9-06912dd70457",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "oZi1qc7Qs84NkXzZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "n8n01",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        32,
+        -128
+      ],
+      "id": "8edcffb0-0fbd-4536-8d7a-9342b2c6a00c",
+      "name": "Qdrant Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "327Fvu63tAtTV27W",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Retrieve data from the vector database for the knowledge base.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "n8n01",
+          "mode": "list",
+          "cachedResultName": "n8n01"
+        },
+        "topK": 20,
+        "useReranker": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        992,
+        176
+      ],
+      "id": "25b17405-da76-4e78-8b66-9d7eaec3a084",
+      "name": "Qdrant Vector Store1",
+      "credentials": {
+        "qdrantApi": {
+          "id": "327Fvu63tAtTV27W",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "moonshotai/kimi-k2-instruct-0905",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        768,
+        80
+      ],
+      "id": "dc499f82-d223-498c-b277-845733cc723a",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "Wea7PURP5BpMya0S",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        336
+      ],
+      "id": "59cde08d-81b8-4bc0-91ea-de36119153ce",
+      "name": "Reranker Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "tpxrpWO0k3rLP0aV",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://mcp.tavily.com/mcp/?tavilyApiKey=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",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        32
+      ],
+      "id": "10c93b28-f00c-4b5e-b48a-3aa28c5fdc10",
+      "name": "Tavily MCP"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d606f2bf-127d-4cae-9de6-113fd8a95bed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0bf38f0fc42669a394bc65c8be01d407757be1751db724180b07ffe99403dd11"
+  },
+  "id": "iiCY18XG3z2VOYrD",
+  "tags": []
+}
